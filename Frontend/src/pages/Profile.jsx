@@ -1,20 +1,44 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [isFollowing, setIsFollowing] = useState(false);
+
   const navigate = useNavigate();
+  const { id } = useParams(); // other user's id (if exists)
 
-useEffect(() => {
-  const fetchProfile = async () => {
+  const token = localStorage.getItem("token");
+  const loggedInUserId = token
+    ? JSON.parse(atob(token.split(".")[1]))._id
+    : null;
+
+  // 🔴 LOGOUT
+  const handleLogout = async () => {
     try {
-      const token = localStorage.getItem("token");
-      console.log("TOKEN:", token);
+      await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/users/logout`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
+    } catch (err) {
+      console.log("Logout error");
+    } finally {
+      localStorage.removeItem("token");
+      navigate("/login");
+    }
+  };
 
-      const res = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/users/profile`,
+  // 🔁 FOLLOW / UNFOLLOW
+  const handleFollow = async () => {
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/users/follow/${user._id}`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -22,18 +46,50 @@ useEffect(() => {
         }
       );
 
-      console.log("PROFILE RESPONSE:", res.data);
+      setIsFollowing(res.data.isFollowing);
 
-      setUser(res.data.user);
-      setPosts(res.data.posts);
+      // update followers count instantly
+      setUser((prev) => ({
+        ...prev,
+        followers: res.data.isFollowing
+          ? [...prev.followers, loggedInUserId]
+          : prev.followers.filter((id) => id !== loggedInUserId),
+      }));
     } catch (err) {
-      console.error("PROFILE ERROR:", err.response?.data || err.message);
+      console.log("Follow error");
     }
   };
 
-  fetchProfile();
-}, []);
+  // 🔄 FETCH PROFILE
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const url = id
+          ? `${import.meta.env.VITE_BASE_URL}/users/${id}`
+          : `${import.meta.env.VITE_BASE_URL}/users/profile`;
 
+        const res = await axios.get(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setUser(res.data.user);
+        setPosts(res.data.posts || []);
+
+        // check follow status ONLY for other users
+        if (id) {
+          setIsFollowing(
+            res.data.user.followers?.includes(loggedInUserId)
+          );
+        }
+      } catch (err) {
+        console.error("PROFILE ERROR:", err.response?.data || err.message);
+      }
+    };
+
+    fetchProfile();
+  }, [id]);
 
   if (!user) {
     return <div className="text-center mt-10">Loading...</div>;
@@ -42,15 +98,25 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-gray-100 pb-20">
 
-      <div className="bg-white border-b py-3 text-center text-xl font-semibold">
-        Profile
+      {/* 🔝 TOP BAR */}
+      <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
+        <span className="text-2xl font-semibold">Profile</span>
+
+        {!id && (
+          <button
+            onClick={handleLogout}
+            className="text-sm text-red-500 font-medium"
+          >
+            Logout
+          </button>
+        )}
       </div>
 
-      <div className="bg-white p-6 flex items-center gap-6 ">
+      {/* 👤 USER INFO */}
+      <div className="bg-white p-6 flex items-center gap-6">
         <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center">
-            <i className="fa-solid fa-user text-4xl text-gray-600"></i>
+          <i className="fa-solid fa-user text-4xl text-gray-600"></i>
         </div>
-
 
         <div>
           <h2 className="text-lg font-semibold">{user.username}</h2>
@@ -67,13 +133,27 @@ useEffect(() => {
             </span>
           </div>
 
-          <button className="mt-3 px-4 py-1 border rounded text-sm font-medium">
-            Edit Profile
-          </button>
+          {/* 🎯 BUTTON LOGIC */}
+          {user._id === loggedInUserId ? (
+            <button className="mt-3 px-4 py-1 border rounded text-sm font-medium">
+              Edit Profile
+            </button>
+          ) : (
+            <button
+              onClick={handleFollow}
+              className={`mt-3 px-4 py-1 rounded text-sm font-medium ${
+                isFollowing
+                  ? "border text-black"
+                  : "bg-blue-500 text-white"
+              }`}
+            >
+              {isFollowing ? "Unfollow" : "Follow"}
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 🖼️ Posts Grid */}
+      {/* 🖼️ POSTS GRID */}
       <div className="grid grid-cols-3 gap-1 mt-1">
         {posts.map((post) => (
           <img
@@ -81,8 +161,7 @@ useEffect(() => {
             src={`${import.meta.env.VITE_BASE_URL}/uploads/${post.image}`}
             alt="post"
             className="w-full aspect-square object-cover"
-        />
-
+          />
         ))}
 
         {posts.length === 0 && (
@@ -92,13 +171,9 @@ useEffect(() => {
         )}
       </div>
 
-      {/* ⬇️ Bottom Navigation */}
+      {/* ⬇️ BOTTOM NAV */}
       <div className="bg-white border-t fixed bottom-0 w-full flex justify-around items-center py-3">
-
-        <button
-          onClick={() => navigate("/home")}
-          className="text-2xl"
-        >
+        <button onClick={() => navigate("/home")} className="text-2xl">
           <i className="fa-solid fa-house"></i>
         </button>
 
@@ -109,13 +184,9 @@ useEffect(() => {
           <i className="fa-solid fa-plus"></i>
         </button>
 
-        <button
-          onClick={() => navigate("/profile")}
-          className="text-2xl"
-        >
+        <button onClick={() => navigate("/profile")} className="text-2xl">
           <i className="fa-solid fa-user"></i>
         </button>
-
       </div>
     </div>
   );

@@ -20,9 +20,9 @@ const Home = () => {
           }
         );
 
-        setPosts(res.data.posts);
+        setPosts(res.data);
       } catch (err) {
-        console.error(err);
+        console.error("FEED ERROR:", err.response?.data || err.message);
       }
     };
 
@@ -30,72 +30,66 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gray-100 pb-20">
 
       <div className="bg-white border-b py-3 text-center text-xl font-semibold">
         Instagram
       </div>
 
-      <div className="flex-1 overflow-y-auto max-w-md mx-auto w-full px-2 py-4 space-y-6">
+      <div className="max-w-md mx-auto">
         {posts.map((post) => (
-          <div
-            key={post._id}
-            className="bg-white border rounded-lg overflow-hidden"
-          >
-            <div className="p-3 font-semibold">
-              {post.user.username}
+          <div key={post._id} className="bg-white mb-4 border">
+
+            <div className="flex items-center gap-3 p-3">
+              <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                <i className="fa-solid fa-user text-sm text-gray-600"></i>
+              </div>
+              <span className="font-semibold text-sm">
+                {post.user?.username}
+              </span>
             </div>
 
             <img
-              src={post.image}
+              src={`${import.meta.env.VITE_BASE_URL}/uploads/${post.image}`}
               alt="post"
-              className="w-full h-64 object-cover"
+              className="w-full object-cover"
             />
 
-            <div className="p-3">
-              <p className="font-semibold">
-                {post.likes.length} likes
-              </p>
-              <p>
-                <span className="font-semibold">
-                  {post.user.username}
-                </span>{" "}
-                {post.caption}
-              </p>
+            <div className="px-3 pt-2 flex gap-4 text-xl">
+              <i className="fa-regular fa-heart"></i>
+              <i className="fa-regular fa-comment"></i>
             </div>
+
+            {post.caption && (
+              <p className="px-3 py-2 text-sm">
+                <b>{post.user?.username}</b> {post.caption}
+              </p>
+            )}
           </div>
         ))}
 
         {posts.length === 0 && (
-          <p className="text-center text-gray-500">
+          <p className="text-center text-gray-500 mt-10">
             No posts yet
           </p>
         )}
       </div>
 
-      <div className="bg-white border-t fixed bottom-0 w-full flex justify-around items-center py-3">
-
-        <button
-          onClick={() => navigate("/home")}
-          className="text-2xl"
-        >
+      <div className="bg-white border-t fixed bottom-0 w-full flex justify-around py-3">
+        <button onClick={() => navigate("/home")} className="text-2xl">
           <i className="fa-solid fa-house"></i>
         </button>
 
         <button
           onClick={() => navigate("/create-post")}
-          className="bg-black text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl -mt-8 shadow-lg"
+          className="bg-black text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl -mt-8"
         >
           <i className="fa-solid fa-plus"></i>
         </button>
 
-        <button
-          onClick={() => navigate("/profile")}
-          className="text-2xl"
-        >
-          <i className="fa-regular fa-user"></i>
+        <button onClick={() => navigate("/profile")} className="text-2xl">
+          <i className="fa-solid fa-user"></i>
         </button>
-
       </div>
 
     </div>
