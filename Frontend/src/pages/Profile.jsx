@@ -8,14 +8,13 @@ const Profile = () => {
   const [isFollowing, setIsFollowing] = useState(false);
 
   const navigate = useNavigate();
-  const { id } = useParams(); // other user's id (if exists)
+  const { id } = useParams();
 
   const token = localStorage.getItem("token");
   const loggedInUserId = token
     ? JSON.parse(atob(token.split(".")[1]))._id
     : null;
 
-  // 🔴 LOGOUT
   const handleLogout = async () => {
     try {
       await axios.get(
@@ -33,7 +32,6 @@ const Profile = () => {
     }
   };
 
-  // 🔁 FOLLOW / UNFOLLOW
   const handleFollow = async () => {
     try {
       const res = await axios.post(
@@ -48,7 +46,6 @@ const Profile = () => {
 
       setIsFollowing(res.data.isFollowing);
 
-      // update followers count instantly
       setUser((prev) => ({
         ...prev,
         followers: res.data.isFollowing
@@ -60,7 +57,6 @@ const Profile = () => {
     }
   };
 
-  // 🔄 FETCH PROFILE
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -77,7 +73,6 @@ const Profile = () => {
         setUser(res.data.user);
         setPosts(res.data.posts || []);
 
-        // check follow status ONLY for other users
         if (id) {
           setIsFollowing(
             res.data.user.followers?.includes(loggedInUserId)
@@ -98,7 +93,6 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gray-100 pb-20">
 
-      {/* 🔝 TOP BAR */}
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
         <span className="text-2xl font-semibold">Profile</span>
 
@@ -112,7 +106,6 @@ const Profile = () => {
         )}
       </div>
 
-      {/* 👤 USER INFO */}
       <div className="bg-white p-6 flex items-center gap-6">
         <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center">
           <i className="fa-solid fa-user text-4xl text-gray-600"></i>
@@ -133,7 +126,6 @@ const Profile = () => {
             </span>
           </div>
 
-          {/* 🎯 BUTTON LOGIC */}
           {user._id === loggedInUserId ? (
             <button className="mt-3 px-4 py-1 border rounded text-sm font-medium">
               Edit Profile
@@ -153,7 +145,6 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* 🖼️ POSTS GRID */}
       <div className="grid grid-cols-3 gap-1 mt-1">
         {posts.map((post) => (
           <img
@@ -171,7 +162,6 @@ const Profile = () => {
         )}
       </div>
 
-      {/* ⬇️ BOTTOM NAV */}
       <div className="bg-white border-t fixed bottom-0 w-full flex justify-around items-center py-3">
         <button onClick={() => navigate("/home")} className="text-2xl">
           <i className="fa-solid fa-house"></i>
