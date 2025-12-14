@@ -49,8 +49,8 @@ const Profile = () => {
       setUser((prev) => ({
         ...prev,
         followers: res.data.isFollowing
-          ? [...prev.followers, loggedInUserId]
-          : prev.followers.filter((id) => id !== loggedInUserId),
+        ? [...(prev.followers || []), loggedInUserId]
+        : (prev.followers || []).filter((id) => id !== loggedInUserId),
       }));
     } catch (err) {
       console.log("Follow error");

@@ -22,7 +22,7 @@ const Home = () => {
 
         setPosts(res.data);
       } catch (err) {
-        console.error("FEED ERROR:", err.response?.data || err.message);
+        console.log("Feed error");
       }
     };
 
@@ -44,7 +44,11 @@ const Home = () => {
               <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
                 <i className="fa-solid fa-user text-sm text-gray-600"></i>
               </div>
-              <span className="font-semibold text-sm">
+
+              <span
+                onClick={() => navigate(`/profile/${post.user?._id}`)}
+                className="font-semibold text-sm cursor-pointer"
+              >
                 {post.user?.username}
               </span>
             </div>
@@ -56,8 +60,8 @@ const Home = () => {
             />
 
             <div className="px-3 pt-2 flex gap-4 text-xl">
-              <i className="fa-regular fa-heart"></i>
-              <i className="fa-regular fa-comment"></i>
+              <i className="fa-regular fa-heart cursor-pointer"></i>
+              <i className="fa-regular fa-comment cursor-pointer"></i>
             </div>
 
             {post.caption && (
