@@ -12,4 +12,11 @@ router.post(
   postController.createPost
 );
 
+router.get(
+  "/feed",
+  authMiddleware.authUser,
+  postController.getFeed
+);
+
+
 module.exports = router;

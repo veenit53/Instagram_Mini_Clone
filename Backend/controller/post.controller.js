@@ -8,7 +8,7 @@ module.exports.createPost = async (req, res) => {
 
     const post = await Post.create({
       user: req.user._id,
-      image: req.file.filename, // save filename
+      image: req.file.filename,
       caption: req.body.caption,
     });
 
@@ -16,6 +16,18 @@ module.exports.createPost = async (req, res) => {
       message: "Post created",
       post,
     });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports.getFeed = async (req, res) => {
+  try {
+    const posts = await Post.find()
+      .populate("user", "username fullname")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(posts);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

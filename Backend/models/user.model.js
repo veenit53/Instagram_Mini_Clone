@@ -28,11 +28,27 @@ const userSchema = new mongoose.Schema({
         unique: true,
         minlength: [5, 'Email must be at least 3 character long'],
     },
+
     password:{
         type: String,
         required: true,
         select: false,
     },
+
+    followers: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        }
+    ],
+    
+    following: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        }
+    ],
+
     socketId:{
         type: String,
     }
