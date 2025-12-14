@@ -27,6 +27,13 @@ router.post("/follow/:id",
   userController.followUnfollowUser
 );
 
+router.get(
+  "/:id",
+  authMiddleware.authUser,
+  userController.getUserById
+);
+
+
 
 
 module.exports = router;
