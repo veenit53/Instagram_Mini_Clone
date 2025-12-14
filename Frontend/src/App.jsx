@@ -4,7 +4,7 @@ import UserLogin from './pages/UserLogin.jsx';
 import UserSignup from './pages/UserSignup.jsx';
 import Profile from './pages/Profile.jsx';
 import CreatePost from './pages/CreatePost.jsx';
-import UserProtectedWrapper from './pages/UserProtectedWrapper.jsx';;
+import UserProtectedWrapper from './pages/UserProtectedWrapper.jsx';
 
 
 const App = () =>{
