@@ -6,22 +6,51 @@ const Home = () => {
   const [posts, setPosts] = useState([]);
   const navigate = useNavigate();
 
+  const token = localStorage.getItem("token");
+
+  const loggedInUserId = token
+    ? JSON.parse(atob(token.split(".")[1]))._id
+    : null;
+
+  const toggleLike = async (postId) => {
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/posts/like/${postId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setPosts((prev) =>
+        prev.map((post) =>
+          post._id === postId
+            ? {
+                ...post,
+                likes: res.data.isLiked
+                  ? [...post.likes, loggedInUserId]
+                  : post.likes.filter((id) => id !== loggedInUserId),
+              }
+            : post
+        )
+      );
+    } catch {
+      console.log("Like error");
+    }
+  };
+
   useEffect(() => {
     const fetchFeed = async () => {
       try {
-        const token = localStorage.getItem("token");
-
         const res = await axios.get(
           `${import.meta.env.VITE_BASE_URL}/posts/feed`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
         setPosts(res.data);
-      } catch (err) {
+      } catch {
         console.log("Feed error");
       }
     };
@@ -31,15 +60,18 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 pb-20">
-
-      <div className="bg-white border-b py-3 text-center text-xl font-semibold">
-        Instagram
+      <div className="bg-white border-b px-4 py-3 flex items-center justify-center gap-2">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/1200px-Instagram_logo_2016.svg.png"
+          alt="Instagram"
+          className="h-7"
+        />
+        <span className="text-xl font-semibold">Instagram</span>
       </div>
 
       <div className="max-w-md mx-auto">
         {posts.map((post) => (
           <div key={post._id} className="bg-white mb-4 border">
-
             <div className="flex items-center gap-3 p-3">
               <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
                 <i className="fa-solid fa-user text-sm text-gray-600"></i>
@@ -60,7 +92,15 @@ const Home = () => {
             />
 
             <div className="px-3 pt-2 flex gap-4 text-xl">
-              <i className="fa-regular fa-heart cursor-pointer"></i>
+              <i
+                onClick={() => toggleLike(post._id)}
+                className={`cursor-pointer ${
+                  post.likes?.includes(loggedInUserId)
+                    ? "fa-solid fa-heart text-red-500"
+                    : "fa-regular fa-heart"
+                }`}
+              ></i>
+
               <i className="fa-regular fa-comment cursor-pointer"></i>
             </div>
 
@@ -95,7 +135,6 @@ const Home = () => {
           <i className="fa-solid fa-user"></i>
         </button>
       </div>
-
     </div>
   );
 };
