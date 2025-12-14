@@ -3,3 +3,4 @@ this is Instagram MIni Clone,  small version of instagram in which you can Login
 Both Frontend and Backend are in these folder and Both have their README file so its easy for user to understand.
 
 Readme file for both Frontend and Backend are created using cpoilot
+To follow user you can click on user from feed and then you will go their profile where you can follow and unfollow user.
