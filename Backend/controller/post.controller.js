@@ -32,3 +32,31 @@ module.exports.getFeed = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+module.exports.toggleLike = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    const userId = req.user._id;
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    const isLiked = post.likes.includes(userId);
+
+    if (isLiked) {
+      post.likes.pull(userId);
+    } else {
+      post.likes.push(userId);
+    }
+
+    await post.save();
+
+    res.status(200).json({
+      isLiked: !isLiked,
+      likesCount: post.likes.length,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

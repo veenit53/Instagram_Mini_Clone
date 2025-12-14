@@ -18,5 +18,11 @@ router.get(
   postController.getFeed
 );
 
+router.post(
+  "/like/:id",
+  authMiddleware.authUser,
+  postController.toggleLike
+);
+
 
 module.exports = router;
